@@ -1,6 +1,6 @@
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 import cv2
@@ -19,10 +19,9 @@ class DeepProfile:
 
   def profiles_image(self, image):
     self.image  = image
-    input_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     # Detecte faces in image
-    faces_detected = self.detecte_faces(input_image)
+    faces_detected = self.detecte_faces(self.image)
 
     # Matrix to faces in image
     faces = np.empty((len(faces_detected), self.img_size, self.img_size, 3))
@@ -51,9 +50,10 @@ class DeepProfile:
 
   def detecte_faces(self, image):
     #gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    input_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     # detect faces using dlib detector
-    detected = self.detector(image, 0)
+    detected = self.detector(input_image, 0)
 
     return detected
 
@@ -71,6 +71,7 @@ class DeepProfile:
     yw2 = min(int(y2 + 0.4 * h), image_h - 1)
     
     self.draw_rectangle(image, (x1, y1), (x2, y2))
+    #self.draw_rectangle(image, (xw1, yw1), (xw2, yw2))
     
     return cv2.resize(image[yw1:yw2 + 1, xw1:xw2 + 1, :], (self.img_size, self.img_size))
 
