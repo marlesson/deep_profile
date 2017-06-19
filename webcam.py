@@ -13,13 +13,13 @@ FRAME_HEIGHT = 480
 
 def main():
     dp  = DeepProfile()
-    vs  = VideoStream().start()
+    vs  = VideoStream(resolution=(FRAME_WIDTH, FRAME_HEIGHT)).start()  #
     time.sleep(2.0)
 
     while True:
         # get video frame
         frame = vs.read()
-        #frame = imutils.resize(frame, width=400)
+        frame = imutils.resize(frame, width=FRAME_WIDTH)
 
         dp.profiles_image(frame)
 

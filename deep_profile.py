@@ -42,7 +42,7 @@ class DeepProfile:
 
       # draw results
       for i, d in enumerate(faces_detected):
-          gender = "M" if predicted_genders[i][0] >= 0.5 else "H"
+          gender = "M" if predicted_genders[i][0] >= 0.4 else "H"
           ages   = int(predicted_ages[i])
           self.draw_label(self.image, (d.left(), d.top()), gender, ages)
 
