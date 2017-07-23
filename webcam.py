@@ -4,6 +4,7 @@ import dlib
 import numpy as np
 import time
 import imutils
+
 from imutils.video import VideoStream
 from imutils import face_utils
 from deep_profile import DeepProfile
@@ -27,7 +28,8 @@ def main():
         
         key = cv2.waitKey(30)
 
-        if key == 27:
+        # if the `q` key was pressed, break from the loop
+        if key == ord("q"):
             break
 
 if __name__ == '__main__':

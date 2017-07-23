@@ -13,6 +13,7 @@ files = [f for f in os.listdir(path) if os.path.isfile(path+f)]
 dp    = DeepProfile()
 
 for f in files:
+  if ".jpg" in f:
     img = cv2.imread(path+f)
     print(path+f)
     dp.profiles_image(img)

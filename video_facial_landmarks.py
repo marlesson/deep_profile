@@ -8,6 +8,8 @@ import time
 import dlib
 import cv2
 import numpy as np
+import face_recognition
+from datetime import datetime
 
 # You can download the required pre-trained face detection model here:
 # http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
@@ -32,6 +34,15 @@ print("[INFO] camera sensor warming up...")
 vs = VideoStream(usePiCamera=args["picamera"] > 0).start()
 time.sleep(2.0)
 
+file_log = open("log/file_log_face", "a")
+
+def print_log(file_log, face_encode):
+  now    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+  face   = ",".join([str(i) for i in face_encode])
+  output = "{}, {}\n".format(now, face)
+  
+  file_log.write(output)
+
 # loop over the frames from the video stream
 while True:
   # grab the frame from the threaded video stream, resize it to
@@ -39,7 +50,7 @@ while True:
   # grayscale
   frame = vs.read()
   frame = imutils.resize(frame, width=400)
-  gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+  gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
  
   # detect faces in the grayscale frame
   rects = detector(gray, 0)
@@ -53,15 +64,20 @@ while True:
     xw2 = min(int(x2 + 0.4 * w), image_w - 1)
     yw2 = min(int(y2 + 0.4 * h), image_h - 1)
     
-    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 2, cv2.LINE_AA)
+    # Face encoding 218d
+    cropped_face  = frame[yw1:yw2 + 1, xw1:xw2 + 1]
+    #face_encoding = face_recognition.face_encodings(cropped_face)[0]
+    #print_log(file_log, face_encoding)
 
+    # Print retangle
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 2, cv2.LINE_AA)
+    
   # loop over the face detections
   for rect in rects:
     # determine the facial landmarks for the face region, then
     # convert the facial landmark (x, y)-coordinates to a NumPy
     # array
     shape = predictor(gray, rect)
-    print(shape)
     shape = face_utils.shape_to_np(shape)
  
     # loop over the (x, y)-coordinates for the facial landmarks
