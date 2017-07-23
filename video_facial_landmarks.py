@@ -9,6 +9,10 @@ import dlib
 import cv2
 import numpy as np
 
+# You can download the required pre-trained face detection model here:
+# http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+predictor_model = "pretrained_models/shape_predictor_68_face_landmarks.dat"
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 #ap.add_argument("-p", "--shape-predictor", required=True,
@@ -21,7 +25,7 @@ args = vars(ap.parse_args())
 # the facial landmark predictor
 print("[INFO] loading facial landmark predictor...")
 detector = dlib.get_frontal_face_detector()
-#predictor = dlib.shape_predictor(args["shape_predictor"])
+predictor = dlib.shape_predictor(predictor_model)#args["shape_predictor"])
 
 # initialize the video stream and allow the cammera sensor to warmup
 print("[INFO] camera sensor warming up...")
@@ -52,17 +56,18 @@ while True:
     cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 2, cv2.LINE_AA)
 
   # loop over the face detections
-  # for rect in rects:
-  #   # determine the facial landmarks for the face region, then
-  #   # convert the facial landmark (x, y)-coordinates to a NumPy
-  #   # array
-  #   shape = predictor(gray, rect)
-  #   shape = face_utils.shape_to_np(shape)
+  for rect in rects:
+    # determine the facial landmarks for the face region, then
+    # convert the facial landmark (x, y)-coordinates to a NumPy
+    # array
+    shape = predictor(gray, rect)
+    print(shape)
+    shape = face_utils.shape_to_np(shape)
  
-  #   # loop over the (x, y)-coordinates for the facial landmarks
-  #   # and draw them on the image
-  #   for (x, y) in shape:
-  #     cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
+    # loop over the (x, y)-coordinates for the facial landmarks
+    # and draw them on the image
+    for (x, y) in shape:
+      cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
     
   # show the frame
   cv2.imshow("Frame", frame)

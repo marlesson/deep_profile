@@ -10,12 +10,13 @@ from wide_resnet import WideResNet
 
 class DeepProfile:
   def __init__(self):
+    
     self.img_size = 64
-    self.model = WideResNet(self.img_size, depth=16, k=8)()
+    self.model    = WideResNet(self.img_size, depth=16, k=8)()
     self.model.load_weights(os.path.join("pretrained_models", "weights.18-4.06.hdf5"))
-    self.image = None
+    
+    self.image    = None
     self.detector = dlib.get_frontal_face_detector()
-
 
   def profiles_image(self, image):
     self.image  = image
@@ -95,3 +96,5 @@ class DeepProfile:
     
     cv2.putText(image, label1, (x, y), font, font_scale, (255, 255, 255), thickness)
     cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
+
+  #def print_log(self, )
