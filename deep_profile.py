@@ -10,6 +10,8 @@ import dlib
 import numpy as np
 from datetime import datetime
 
+from list_face import ListFace 
+from list_face import Face
 from wide_resnet import WideResNet
 
 class DeepProfile:
@@ -20,8 +22,9 @@ class DeepProfile:
     self.model    = WideResNet(self.img_size, depth=16, k=8)()
     self.model.load_weights(os.path.join("pretrained_models", "weights.18-4.06.hdf5"))
     
-    self.image    = None
-    self.detector = dlib.get_frontal_face_detector()
+    self.image     = None
+    self.detector  = dlib.get_frontal_face_detector()
+    self.list_face = []
 
   def profiles_image(self, image):
     self.image  = image
@@ -37,27 +40,53 @@ class DeepProfile:
         faces[i,:,:,:] = self.copy_face_in_image(self.image, d) 
 
     # Predict ages and genders of the detected faces
-    results = self.predict(faces)
+    result, genders, ages = self.predict(faces)
+    if result:
+      for i, d in enumerate(faces_detected):
+          face_encode = self.face_encode(self.image, d)
+          l_face      = self.add_list_face(self.image, d, genders[i], ages[i])
+          self.draw_box(self.image, d, l_face.avg_gender(), l_face.avg_age())
+          #self.draw_box(self.image, d, genders[i], ages[i])      
+
+    return self.image
+
+  def add_list_face(self, image, face, gender, ages):
+    x1, y1, x2, y2, w, h = face.left(), face.top(), face.right() + 1, face.bottom() + 1, face.width(), face.height()
+    
+    # Face
+    face = Face([x1, y1], [x2, y2], gender, int(ages))
+    now_list_face = None
+
+    # find list face of face
+    for l_face in self.list_face:
+      if l_face.is_intersection(face):
+        now_list_face = l_face
+        break
+
+    # if not found
+    if now_list_face == None:
+      now_list_face = ListFace() #new 
+      self.list_face.append(now_list_face)
+
+    now_list_face.add_face(face)
+
+    return now_list_face
+
+  def predict(self, faces):
+    results = self.model.predict(faces)
     if len(results) > 0:
+
       # Gender
-      predicted_genders = results[0]
+      predicted_genders = [self.get_gender(g[0]) for g in results[0]]
 
       # Age
       ages      = np.arange(0, 101).reshape(101, 1)
       pred_ages = results[1].dot(ages).flatten()
-
-      # draw results
-      for i, d in enumerate(faces_detected):
-          gender = self.get_gender(predicted_genders[i][0])
-          ages   = int(pred_ages[i])
-          
-          face_encode = self.face_encode(self.image, d)
-          self.draw_label(self.image, d, gender, ages)
-          self.draw_box(self.image, d, gender, ages)
-
-          self.print_log(gender, ages, face_encode)
-
-    return self.image
+      pred_ages = [int(age) for age in pred_ages]
+      
+      return True, predicted_genders, pred_ages
+    else:
+      return False, [], []
 
   def get_gender(self, value):
     return "M" if value >= 0.4 else "H"
@@ -65,15 +94,10 @@ class DeepProfile:
   def detecte_faces(self, image):
     #gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     input_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
     # detect faces using dlib detector
     detected = self.detector(input_image, 0)
 
     return detected
-
-  def predict(self, faces):
-    results = self.model.predict(faces)
-    return results
 
   def copy_face_in_image(self, image, face):
     image_h, image_w, _ = np.shape(image)
@@ -96,7 +120,7 @@ class DeepProfile:
     yw2 = min(int(y2 + 0.4 * h), image_h - 1)
 
     cropped_face  = image[yw1:yw2 + 1, xw1:xw2 + 1]
-    #face_encoding = np.ones(5)#face_recognition.face_encodings(cropped_face)[0]
+    face_encoding = np.ones(5)#face_recognition.face_encodings(cropped_face)[0]
 
     return face_encoding
 
@@ -111,9 +135,10 @@ class DeepProfile:
     else:
       color = (255, 0, 0)  
     
+    self.draw_label(image, face, gender, ages, color)
     self.draw_rectangle(image, (x1, y1), (x2, y2), color)
 
-  def draw_label(self, image, face, gender, ages, 
+  def draw_label(self, image, face, gender, ages, color,
                  font=cv2.FONT_HERSHEY_DUPLEX,
                  font_scale=0.5, thickness=1):
     
@@ -121,16 +146,18 @@ class DeepProfile:
     image_h, image_w, _ = np.shape(image)
 
     label2 = "{}".format("Mulher" if gender == 'M' else "Homem")
-    label1 = "Idade: {}".format(ages)
+    label1 = "[{}]".format(ages)
     
-    size  = max(cv2.getTextSize(label1, font, font_scale, thickness)[0], cv2.getTextSize(label2, font, font_scale, thickness)[0])
+    #size  = max(cv2.getTextSize(label1, font, font_scale, thickness)[0], cv2.getTextSize(label2, font, font_scale, thickness)[0])
+    size  = cv2.getTextSize(label1, font, font_scale, thickness)[0]
     x, y  = point
-    y     -= 9
+    y     -= 7
+    x     -= 1
     
-    cv2.rectangle(image, (x, y - size[1]*2-5), (x + size[0]+2, y+5), (0,0,0), cv2.FILLED)
-    
+    cv2.rectangle(image, (x, y - size[1]-5), (x + size[0]+2, y+5), color, cv2.FILLED)
     cv2.putText(image, label1, (x, y), font, font_scale, (255, 255, 255), thickness)
-    cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
+    
+    #cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
 
   def print_log(self, gender, ages, face_encode):
     now    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
