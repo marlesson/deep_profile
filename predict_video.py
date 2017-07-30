@@ -8,7 +8,7 @@ import imutils
 from deep_profile import DeepProfile
 from moviepy.editor import VideoFileClip
 
-file_name  = 'data/video_3.mp4'
+file_name  = 'data/video_12.mp4'
 
 
 def main():

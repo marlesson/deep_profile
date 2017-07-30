@@ -3,8 +3,6 @@ import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = ""
 #os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 
-#import face_recognition
-
 import cv2
 import dlib
 import numpy as np
@@ -12,7 +10,10 @@ from datetime import datetime
 
 from list_face import ListFace 
 from list_face import Face
+#import face_recognition
+
 from wide_resnet import WideResNet
+
 
 class DeepProfile:
   def __init__(self):
@@ -25,8 +26,10 @@ class DeepProfile:
     self.image     = None
     self.detector  = dlib.get_frontal_face_detector()
     self.list_face = []
+    self.logs      = []
 
   def profiles_image(self, image):
+    self.logs   = []
     self.image  = image
 
     # Detecte faces in image
@@ -45,14 +48,24 @@ class DeepProfile:
       for i, d in enumerate(faces_detected):
           face_encode = self.face_encode(self.image, d)
           l_face      = self.add_list_face(self.image, d, genders[i], ages[i])
+          
           self.draw_box(self.image, d, l_face.avg_gender(), l_face.avg_age())
           #self.draw_box(self.image, d, genders[i], ages[i])      
 
+      self.logs.append("Face: {}".format(len(self.list_face)))
+      
+      for l_face in self.list_face:
+        self.logs.append("Face -> : {}".format(len(l_face.faces)))
+
+          
+
+    self.display_log(self.image)
     return self.image
 
   def add_list_face(self, image, face, gender, ages):
     x1, y1, x2, y2, w, h = face.left(), face.top(), face.right() + 1, face.bottom() + 1, face.width(), face.height()
     
+
     # Face
     face = Face([x1, y1], [x2, y2], gender, int(ages))
     now_list_face = None
@@ -94,8 +107,9 @@ class DeepProfile:
   def detecte_faces(self, image):
     #gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     input_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
     # detect faces using dlib detector
-    detected = self.detector(input_image, 0)
+    detected = self.detector(input_image, 1)
 
     return detected
 
@@ -156,8 +170,15 @@ class DeepProfile:
     
     cv2.rectangle(image, (x, y - size[1]-5), (x + size[0]+2, y+5), color, cv2.FILLED)
     cv2.putText(image, label1, (x, y), font, font_scale, (255, 255, 255), thickness)
-    
-    #cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
+
+  def display_log(self, image, font=cv2.FONT_HERSHEY_DUPLEX,
+                 font_scale=0.5, thickness=1):
+    x = 0
+    y = 10
+
+    for log in self.logs:
+      cv2.putText(image, log, (x, y), font, font_scale, (255, 255, 255), thickness)
+      y = y + cv2.getTextSize(log, font, font_scale, thickness)[0][1]
 
   def print_log(self, gender, ages, face_encode):
     now    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
