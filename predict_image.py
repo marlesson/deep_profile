@@ -7,16 +7,20 @@ import dlib
 
 from deep_profile import DeepProfile
 
-path  = 'data/'
+path  = 'data/images/'
 files = [f for f in os.listdir(path) if os.path.isfile(path+f)]
 
 dp    = DeepProfile()
 
-for f in files:
+#for f in files:
+for i in range(0, 15):
+  f = "familia-feliz-face.jpg"
   if ".jpg" in f:
-    img = cv2.imread(path+f)
     print(path+f)
+
+    img = cv2.imread(path+f)
+    
+ #   dp.reset()
     dp.profiles_image(img)
 
-    #cv2.imshow('image',img)
     cv2.imwrite(path+'pred/'+f, img)

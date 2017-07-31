@@ -8,7 +8,7 @@ import imutils
 from deep_profile import DeepProfile
 from moviepy.editor import VideoFileClip
 
-file_name  = 'data/video_12.mp4'
+file_name  = 'data/video_16.mp4'
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     # Main
 
     # Frames in Video
-    for frame in clip.iter_frames(fps=30):
+    for frame in clip.iter_frames(fps=60):
         # shape of image
         image_h, image_w, _ = np.shape(frame)
 
