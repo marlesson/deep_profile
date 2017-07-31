@@ -68,14 +68,14 @@ class DeepProfile:
           face_encode = self.face_encode(self.image, d)
           l_face      = self.add_list_face(self.image, d, genders_values[i], genders[i], ages[i])
           
-          self.draw_box(self.image, d, l_face.avg_gender(), l_face.avg_age())
+          self.draw_box(self.image, d, l_face)
           #self.draw_box(self.image, d, genders[i], ages[i])      
 
       self.preload_list_face = False
-      self.logs.append("Face: {}".format(len(self.list_face)))
+      self.logs.append("Faces: {}".format(len(self.list_face)))
       
-      for l_face in self.list_face:
-        self.logs.append("Face -> : {}, {} ( {} )".format(l_face.avg_age(), l_face.avg_gender(), int(l_face.gender_confidence()*100)))
+      #for l_face in self.list_face:
+      # self.logs.append("Face -> : {}, {} ( {} )".format(l_face.avg_age(), l_face.avg_gender(), int(l_face.gender_confidence()*100)))
 
           
 
@@ -169,10 +169,7 @@ class DeepProfile:
 
     return face_encoding
 
-  def draw_rectangle(self, image, point1, point2, color):
-    cv2.rectangle(image, point1, point2, color, 2, cv2.LINE_AA)
-
-  def draw_box(self, image, face, gender, ages):
+  def draw_box(self, image, face, l_face):
     image_h, image_w, _  = np.shape(image)
     x1, y1, x2, y2, w, h = face.left(), face.top(), face.right() + 1, face.bottom() + 1, face.width(), face.height()
     
@@ -181,40 +178,48 @@ class DeepProfile:
     #x2 = min(int(x2 + 0.4 * w), image_w - 1)
     #y2 = min(int(y2 + 0.4 * h), image_h - 1)
 
-    if gender == 'M':
+    if l_face.avg_gender() == 'M':
       color = (0, 0, 255)
     else:
       color = (255, 0, 0)  
     
-    self.draw_label(image, face, gender, ages, color)
+    self.draw_label(image, face, l_face, color)
     self.draw_rectangle(image, (x1, y1), (x2, y2), color)
 
-  def draw_label(self, image, face, gender, ages, color,
+  def draw_rectangle(self, image, point1, point2, color):
+    cv2.rectangle(image, point1, point2, color, 2, cv2.LINE_AA)
+
+  def draw_label(self, image, face, l_face, color,
                  font=cv2.FONT_HERSHEY_DUPLEX,
                  font_scale=0.5, thickness=1):
     
     point = (face.left(), face.top())
     image_h, image_w, _ = np.shape(image)
-
-    label2 = "{}".format("Mulher" if gender == 'M' else "Homem")
-    label1 = "[{}]".format(ages)
     
-    #size  = max(cv2.getTextSize(label1, font, font_scale, thickness)[0], cv2.getTextSize(label2, font, font_scale, thickness)[0])
-    size  = cv2.getTextSize(label1, font, font_scale, thickness)[0]
+    lbl_gender  = "Mulher" if l_face.avg_gender() == 'M' else "Homem"
+    lbl_gender  = l_face.avg_gender_name()
+    conf_gender = int(l_face.gender_confidence()*100)
+
+    label2 = "{} ({}%)".format(lbl_gender, conf_gender)
+    label1 = "{} anos".format(l_face.avg_age())
+    
+    size  = max(cv2.getTextSize(label1, font, font_scale, thickness)[0], cv2.getTextSize(label2, font, font_scale, thickness)[0])
+    #size  = cv2.getTextSize(label1, font, font_scale, thickness)[0]
     x, y  = point
     y     -= 7
     x     -= 1
     
-    cv2.rectangle(image, (x, y - size[1]-5), (x + size[0]+2, y+5), color, cv2.FILLED)
+    cv2.rectangle(image, (x, y - 2*size[1]-5), (x + size[0]+2, y+5), (0,0,0), cv2.FILLED)
     cv2.putText(image, label1, (x, y), font, font_scale, (255, 255, 255), thickness)
+    cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
 
   def display_log(self, image, font=cv2.FONT_HERSHEY_DUPLEX,
-                 font_scale=0.5, thickness=1):
+                 font_scale=0.6, thickness=1):
     x = 0
-    y = 10
+    y = 15
 
     for log in self.logs:
-      cv2.putText(image, log, (x, y), font, font_scale, (255, 0, 255), thickness)
+      cv2.putText(image, log, (x, y), font, font_scale, (0, 0, 0), thickness)
       y = y + cv2.getTextSize(log, font, font_scale, thickness)[0][1]
 
   def print_log(self, gender, ages, face_encode):

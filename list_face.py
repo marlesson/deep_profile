@@ -51,7 +51,7 @@ class ListFace:
 
   def add_face(self, face):
     self.frames += 1
-    if len(self.faces) > 30:
+    if len(self.faces) > 500:
       self.faces.pop(0)
       self.faces.append(face)
     else:
@@ -81,6 +81,9 @@ class ListFace:
   def avg_gender_value(self):
     return np.mean([f.gender_value for f in self.faces])
 
+  def avg_gender_name(self):
+    return "Mulher" if self.avg_gender() == 'M' else "Homem"
+
   def gender_confidence(self):
     avg_value = self.avg_gender_value()
 
@@ -90,3 +93,6 @@ class ListFace:
       suspected = avg_value
 
     return 1 - suspected
+
+  def inspection(self):
+    return "{} ({}%), {} anos".format(self.avg_gender_name(), int(self.gender_confidence()*100), self.avg_age())
