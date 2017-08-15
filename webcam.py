@@ -28,6 +28,9 @@ def main():
         
         key = cv2.waitKey(30)
 
+        if key == 1048690:
+            dp.reset()
+
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
