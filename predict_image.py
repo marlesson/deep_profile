@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import dlib
+import argparse
 
 
 from deep_profile import DeepProfile
@@ -10,17 +11,25 @@ from deep_profile import DeepProfile
 path  = 'data/images/'
 files = [f for f in os.listdir(path) if os.path.isfile(path+f)]
 
-dp    = DeepProfile()
 
-#for f in files:
-for i in range(0, 15):
-  f = "familia-feliz-face.jpg"
-  if ".jpg" in f:
-    print(path+f)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Just an example",
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-s", "--sleep",type=float, help="Sleep Frame", default=2.0)
+    parser.add_argument("--ignore-gender", action="store_true", help="skip files that exist")
+    args = parser.parse_args()
+    config = vars(args)
+    print(config)
 
-    img = cv2.imread(path+f)
-    
- #   dp.reset()
-    dp.profiles_image(img)
+    dp    = DeepProfile(ignore_gender=config["ignore_gender"])
 
-    cv2.imwrite(path+'pred/'+f, img)
+    for f in files:
+      if ".jpg" in f:
+        print(path+f)
+
+        img = cv2.imread(path+f)
+        
+    #   dp.reset()
+        dp.profiles_image(img)
+
+        cv2.imwrite(path+'pred/'+f, img)

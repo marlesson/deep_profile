@@ -24,12 +24,12 @@ from wide_resnet import WideResNet
 
 
 class DeepProfile:
-  def __init__(self):
+  def __init__(self, ignore_gender=False):
     self.file_log = open("log/file_log", "a")
 
     self.img_size = 64
     self.model    = WideResNet(self.img_size, depth=16, k=8)()
-    self.model.load_weights(os.path.join("pretrained_models", "weights.18-4.06.hdf5"))
+    self.model.load_weights(os.path.join("pretrained_models", "weights.28-3.73.hdf5"))
     
     self.image     = None
 
@@ -40,6 +40,7 @@ class DeepProfile:
     self.list_face = []
     self.preload_list_face = True
     self.logs      = []
+    self.ignore_gender = ignore_gender
 
   def reset(self):
     self.list_face = []
@@ -178,7 +179,7 @@ class DeepProfile:
     #x2 = min(int(x2 + 0.4 * w), image_w - 1)
     #y2 = min(int(y2 + 0.4 * h), image_h - 1)
 
-    if l_face.avg_gender() == 'M':
+    if l_face.avg_gender() == 'M' or self.ignore_gender:
       color = (0, 0, 255)
     else:
       color = (255, 0, 0)  
@@ -208,10 +209,12 @@ class DeepProfile:
     x, y  = point
     y     -= 7
     x     -= 1
-    
-    cv2.rectangle(image, (x, y - 2*size[1]-5), (x + size[0]+2, y+5), (0,0,0), cv2.FILLED)
+    d     = 2 if not self.ignore_gender else 1
+
+    cv2.rectangle(image, (x, y - d*size[1]-5), (x + size[0]+d, y+5), (0,0,0), cv2.FILLED)
     cv2.putText(image, label1, (x, y), font, font_scale, (255, 255, 255), thickness)
-    cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
+    if not self.ignore_gender:
+      cv2.putText(image, label2, (x, y-size[1]-5), font, font_scale, (255, 255, 255), thickness)
 
   def display_log(self, image, font=cv2.FONT_HERSHEY_DUPLEX,
                  font_scale=0.6, thickness=1):
